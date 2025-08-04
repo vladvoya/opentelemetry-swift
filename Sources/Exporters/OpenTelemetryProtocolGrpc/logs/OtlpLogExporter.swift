@@ -55,7 +55,11 @@ public class OtlpLogExporter: LogRecordExporter {
       _ = try export.response.wait()
       return .success
     } catch {
-      return .failure
+        if let error = error as? GRPC.GRPCStatus, error.isOk {
+            return .success
+        } else {
+            return .failure
+        }
     }
   }
 
