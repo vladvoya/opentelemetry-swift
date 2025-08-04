@@ -51,13 +51,18 @@ public class OtlpLogExporter: LogRecordExporter {
     }
 
     let export = logClient.export(logRequest, callOptions: callOptions)
+    print("[OtlpLogExporter] trying to export \(logRecords.count) log records...")
+
     do {
       _ = try export.response.wait()
+      print("[OtlpLogExporter] trying to export \(logRecords.count) log records... SUCCESS")
       return .success
     } catch {
         if let error = error as? GRPC.GRPCStatus, error.isOk {
+            print("[OtlpLogExporter] trying to export \(logRecords.count) log records... catch block with status code 0. SUCCESS")
             return .success
         } else {
+            print("[OtlpLogExporter] trying to export \(logRecords.count) log records... FAILURE")
             return .failure
         }
     }
