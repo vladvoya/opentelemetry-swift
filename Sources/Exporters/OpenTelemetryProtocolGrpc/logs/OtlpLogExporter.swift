@@ -53,19 +53,19 @@ public class OtlpLogExporter: LogRecordExporter {
     let export = logClient.export(logRequest, callOptions: callOptions)
     print("[OtlpLogExporter] trying to export \(logRecords.count) log records...")
 
-    do {
-      _ = try export.response.wait()
-      print("[OtlpLogExporter] trying to export \(logRecords.count) log records... SUCCESS")
-      return .success
-    } catch {
-        if let error = error as? GRPC.GRPCStatus, error.isOk {
-            print("[OtlpLogExporter] trying to export \(logRecords.count) log records... catch block with status code 0. SUCCESS")
-            return .success
-        } else {
-            print("[OtlpLogExporter] trying to export \(logRecords.count) log records... FAILURE")
-            return .failure
-        }
-    }
+      do {
+          let response = try export.response.wait()
+          print("[OtlpLogExporter] export succeeded - response: \(response)")
+          return .success
+      } catch {
+          if let status = try? export.status.wait() {
+              print("[OtlpLogExporter] gRPC status: \(status.code) - \(status.message ?? "no message")")
+              return status.code == .ok ? .success : .failure
+          } else {
+              print("[OtlpLogExporter] Export failed with unknown error: \(error)")
+              return .failure
+          }
+      }
   }
 
   public func shutdown(explicitTimeout: TimeInterval? = nil) {
